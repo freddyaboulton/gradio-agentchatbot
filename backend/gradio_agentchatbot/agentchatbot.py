@@ -11,7 +11,7 @@ from gradio import utils
 from gradio.components.base import Component
 from gradio.events import Events
 from gradio.processing_utils import move_resource_to_block_cache
-from .utils import OpenAIMessage, ChatbotData, FileMessage, FileData
+from .utils import ChatMessage, ChatbotData, ChatFileMessage, FileData
 
 
 class AgentChatbot(Component):
@@ -24,12 +24,12 @@ class AgentChatbot(Component):
     Guides: creating-a-chatbot
     """
 
-    EVENTS = [Events.change, Events.select, Events.like]
+    EVENTS = [Events.change]
     data_model = ChatbotData
 
     def __init__(
         self,
-        value: list[OpenAIMessage | FileMessage] | Callable | None = None,
+        value: list[dict[str, Any]] | Callable | None = None,
         *,
         label: str | None = None,
         every: float | None = None,
@@ -125,25 +125,10 @@ class AgentChatbot(Component):
             ]
         self.placeholder = placeholder
 
-    # def _preprocess_chat_messages(
-    #     self, chat_message: str | FileMessage | None
-    # ) -> str | tuple[str | None] | tuple[str | None, str] | None:
-    #     if chat_message is None:
-    #         return None
-    #     elif isinstance(chat_message, FileMessage):
-    #         if chat_message.alt_text is not None:
-    #             return (chat_message.file.path, chat_message.alt_text)
-    #         else:
-    #             return (chat_message.file.path,)
-    #     elif isinstance(chat_message, str):
-    #         return chat_message
-    #     else:
-    #         raise ValueError(f"Invalid message for AgentChatbot component: {chat_message}")
-
     def preprocess(
         self,
         payload: ChatbotData | None,
-    ) -> list[OpenAIMessage | FileMessage] | None:
+    ) -> list[ChatMessage | ChatFileMessage] | None:
         """
         Parameters:
             payload: data as a ChatbotData object
@@ -151,32 +136,17 @@ class AgentChatbot(Component):
             Passes the messages in the chatbot as a `list[list[str | None | tuple]]`, i.e. a list of lists. The inner list has 2 elements: the user message and the response message. Each message can be (1) a string in valid Markdown, (2) a tuple if there are displayed files: (a filepath or URL to a file, [optional string alt text]), or (3) None, if there is no message displayed.
         """
         return payload.root
-        # if payload is None:
-        #     return payload
-        # processed_messages = []
-        # for message_pair in payload.root:
-        #     if not isinstance(message_pair, (tuple, list)):
-        #         raise TypeError(
-        #             f"Expected a list of lists or list of tuples. Received: {message_pair}"
-        #         )
-        #     if len(message_pair) != 2:
-        #         raise TypeError(
-        #             f"Expected a list of lists of length 2 or list of tuples of length 2. Received: {message_pair}"
-        #         )
-        #     processed_messages.append(
-        #         [
-        #             self._preprocess_chat_messages(message_pair[0]),
-        #             self._preprocess_chat_messages(message_pair[1]),
-        #         ]
-        #     )
-        # return processed_messages
 
-    def _postprocess_chat_messages(self, chat_message: OpenAIMessage) -> list[OpenAIMessage]:
+    def _postprocess_chat_messages(
+        self, chat_message: ChatMessage
+    ) -> list[ChatMessage]:
         if chat_message is None:
             return None
-        
-        if isinstance(chat_message, FileMessage):
-            chat_message.file.path = move_resource_to_block_cache(chat_message.file.path, block=self)
+
+        if isinstance(chat_message, ChatFileMessage):
+            chat_message.file.path = move_resource_to_block_cache(
+                chat_message.file.path, block=self
+            )
             return [chat_message]
 
         # extract file path from message
@@ -184,17 +154,21 @@ class AgentChatbot(Component):
         for word in chat_message.content.split(" "):
             if (filepath := Path(word)).exists() and filepath.is_file():
                 filepath = move_resource_to_block_cache(filepath, block=self)
-                mime_type = client_utils.get_mimetype(filepath) 
-                new_messages.append(FileMessage(role=chat_message.role,
-                                                content="",
-                                                reasoning=chat_message.reasoning,
-                                                file=FileData(path=filepath, mime_type=mime_type)))
-                
+                mime_type = client_utils.get_mimetype(filepath)
+                new_messages.append(
+                    ChatFileMessage(
+                        role=chat_message.role,
+                        thought=chat_message.thought,
+                        thought_metadata=chat_message.thought_metadata,
+                        file=FileData(path=filepath, mime_type=mime_type),
+                    )
+                )
+
         return [chat_message, *new_messages]
 
     def postprocess(
         self,
-        value: list[OpenAIMessage | FileMessage] | None,
+        value: list[ChatMessage | ChatFileMessage] | None,
     ) -> ChatbotData:
         """
         Parameters:
@@ -209,9 +183,14 @@ class AgentChatbot(Component):
         ]
         return ChatbotData(root=processed_messages)
 
-
     def example_payload(self) -> Any:
-        return [["Hello!", None]]
+        return [
+            ChatMessage(role="user", content="Hello!").model_dump(),
+            ChatMessage(role="assistant", content="How can I help you?").model_dump(),
+        ]
 
     def example_value(self) -> Any:
-        return [["Hello!", None]]
+        return [
+            ChatMessage(role="user", content="Hello!"),
+            ChatMessage(role="assistant", content="How can I help you?"),
+        ]

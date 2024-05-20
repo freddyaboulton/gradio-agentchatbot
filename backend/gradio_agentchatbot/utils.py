@@ -1,26 +1,33 @@
 from transformers.agents import Agent, agent_types
+from pydantic import Field
 from gradio.data_classes import GradioModel, FileData, GradioRootModel
 from typing import Literal, List, Generator, Optional, Union
 from threading import Thread
 import time
 
 
-class OpenAIMessage(GradioModel):
-    role: Literal["system", "user", "assistant", "tool"]
-    content: str
-    reasoning: bool = False
+class ThoughtMetadata(GradioModel):
     tool_name: Optional[str] = None
     error: bool = False
-    thoughts: list["OpenAIMessage"]
 
 
-class FileMessage(OpenAIMessage):
+class Message(GradioModel):
+    role: Literal["user", "assistant"]
+    thought: bool = False
+    thought_metadata: ThoughtMetadata = Field(default_factory=ThoughtMetadata)
+
+
+class ChatMessage(Message):
+    content: str
+
+
+class ChatFileMessage(Message):
     file: FileData
     alt_text: Optional[str] = None
 
 
 class ChatbotData(GradioRootModel):
-    root: List[Union[OpenAIMessage, FileMessage]]
+    root: List[Union[ChatMessage, ChatFileMessage]]
 
 
 def pull_messages(new_messages: List[dict]):
@@ -28,30 +35,40 @@ def pull_messages(new_messages: List[dict]):
         if not len(message):
             continue
         if message.get("rationale"):
-            yield OpenAIMessage(
-                role="assistant", content=message["rationale"], reasoning=True
+            yield ChatMessage(
+                role="assistant", content=message["rationale"], thought=True
             )
         if message.get("tool_call"):
-            yield OpenAIMessage(
+            used_code = message["tool_call"]["tool_name"] == "code interpreter"
+            content = message["tool_call"]["tool_arguments"]
+            if used_code:
+                content = f"```py\n{content}\n```"
+            yield ChatMessage(
                 role="assistant",
-                tool_name=message["tool_call"]["tool_name"],
-                content=message["tool_call"]["tool_arguments"],
-                reasoning=True,
+                thought_metadata=ThoughtMetadata(
+                    tool_name=message["tool_call"]["tool_name"]
+                ),
+                content=content,
+                thought=True,
             )
         if message.get("observation"):
-            yield OpenAIMessage(
-                role="assistant", content=message["observation"], reasoning=True
+            yield ChatMessage(
+                role="assistant", content=message["observation"], thought=True
             )
         if message.get("error"):
-            yield OpenAIMessage(
-                role="assistant", content=str(message["error"]), error=True, reasoning=True
+            yield ChatMessage(
+                role="assistant",
+                content=str(message["error"]),
+                thought=True,
+                thought_metadata=ThoughtMetadata(error=True),
             )
 
 
-def stream_from_agent(
+def stream_from_transformers_agent(
     agent: Agent, prompt: str
-) -> Generator[OpenAIMessage, None, None]:
-    
+) -> Generator[ChatMessage, None, None]:
+    """Runs an agent with the given prompt and streams the messages from the agent as ChatMessages."""
+
     class Output:
         output: agent_types.AgentType | str = None
 
@@ -77,22 +94,24 @@ def stream_from_agent(
     if len(agent.logs) > num_messages:
         new_messages = agent.logs[num_messages:]
         yield from pull_messages(new_messages)
-    
+
     if isinstance(Output.output, agent_types.AgentText):
-        yield OpenAIMessage(role="assistant", content=Output.output.to_string(), reasoning=True)
+        yield ChatMessage(
+            role="assistant", content=Output.output.to_string(), thought=True
+        )
     elif isinstance(Output.output, agent_types.AgentImage):
-        yield FileMessage(
+        yield ChatFileMessage(
             role="assistant",
             file=FileData(path=Output.output.to_string(), mime_type="image/png"),
             content="",
-            reasoning=True,
+            thought=True,
         )
     elif isinstance(Output.output, agent_types.AgentAudio):
-        yield FileMessage(
+        yield ChatFileMessage(
             role="assistant",
             file=FileData(path=Output.output.to_string(), mime_type="audio/wav"),
             content="",
-            reasoning=True,
+            thought=True,
         )
     else:
-        return OpenAIMessage(role="assistant", content=Output.output, reasoning=True)
+        return ChatMessage(role="assistant", content=Output.output, thought=True)

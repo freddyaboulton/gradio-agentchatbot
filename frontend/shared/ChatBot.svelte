@@ -9,7 +9,7 @@
 	import { Image } from "@gradio/image/shared";
 	import { Video } from "@gradio/video/shared";
 	import type { SelectData, LikeData } from "@gradio/utils";
-	import type { OpenAIMessage, FileMessage } from "../types";
+	import type { ChatMessage, ChatFileMessage, Message } from "../types";
 	import { MarkdownCode as Markdown } from "@gradio/markdown";
 	import { FileData } from "@gradio/client";
 	import Copy from "./Copy.svelte";
@@ -19,8 +19,8 @@
 	import ToolMessage from "./ToolMessage.svelte";
 	import ErrorMessage from "./ErrorMessage.svelte";
 
-	export let value:  (OpenAIMessage | FileMessage)[] = [];
-	let old_value: (OpenAIMessage | FileMessage)[] | null = null;
+	export let value:  (ChatMessage | ChatFileMessage)[] = [];
+	let old_value: (ChatMessage | ChatFileMessage)[] | null = null;
 	export let latex_delimiters: {
 		left: string;
 		right: string;
@@ -108,32 +108,38 @@
 
 	function handle_select(
 		i: number,
-		message: OpenAIMessage | FileMessage | null
+		message: Message
 	): void {
 		dispatch("select", {
 			index: i,
-			value: message.content
+			value: (message as ChatMessage).content || (message as ChatFileMessage).file?.url
 		});
 	}
 
 	function handle_like(
 		i: number,
-		message: OpenAIMessage | FileMessage | null,
+		message: Message | null,
 		selected: string | null
 	): void {
 		dispatch("like", {
 			index: i,
-			value: message.content,
+			value: (message as ChatMessage).content || (message as ChatFileMessage).file?.url,
 			liked: selected === "like"
 		});
 	}
 
-	function groupMessages(messages: (OpenAIMessage | FileMessage)[]): (OpenAIMessage | FileMessage)[][] {
-		const groupedMessages: OpenAIMessage[][] = [];
-		let currentGroup: OpenAIMessage[] = [];
+	function isFileMessage(
+		message: ChatMessage | ChatFileMessage
+	): message is ChatFileMessage {
+		return "file" in message;
+	}
+
+	function groupMessages(messages: (ChatMessage | ChatFileMessage)[]): (ChatMessage | ChatFileMessage)[][] {
+		const groupedMessages: (ChatFileMessage | ChatMessage)[][] = [];
+		let currentGroup: (ChatFileMessage | ChatMessage)[] = [];
 
 		for (const message of messages) {
-			if (message.reasoning) {
+			if (message.thought) {
 			currentGroup.push(message);
 			} else {
 			if (currentGroup.length > 0) {
@@ -213,11 +219,38 @@
 								}}
 								dir={rtl ? "rtl" : "ltr"}
 							>
-								{#each messages as message}
-									{#if message.tool_name}
-										<ToolMessage
-											title={`Used tool ${message.tool_name}`}
-										>
+								{#each messages as message, thought_index}
+
+									{#if !isFileMessage(message)}
+										<div class:thought={message.thought && thought_index > 0}>
+										{#if message.thought_metadata.tool_name}
+											<ToolMessage
+												title={`Used tool ${message.thought_metadata.tool_name}`}
+											>
+												<!-- {message.content} -->
+												<Markdown
+													message={message.content}
+													{latex_delimiters}
+													{sanitize_html}
+													{render_markdown}
+													{line_breaks}
+													on:load={scroll}
+												/>
+											</ToolMessage>
+										{:else if message.thought_metadata.error}
+											<ErrorMessage
+											>
+												<!-- {message.content} -->
+												<Markdown
+													message={message.content}
+													{latex_delimiters}
+													{sanitize_html}
+													{render_markdown}
+													{line_breaks}
+													on:load={scroll}
+												/>
+											</ErrorMessage>	
+										{:else}
 											<!-- {message.content} -->
 											<Markdown
 												message={message.content}
@@ -227,32 +260,9 @@
 												{line_breaks}
 												on:load={scroll}
 											/>
-										</ToolMessage>
-									{:else if message.error}
-										<ErrorMessage
-										>
-											<!-- {message.content} -->
-											<Markdown
-												message={message.content}
-												{latex_delimiters}
-												{sanitize_html}
-												{render_markdown}
-												{line_breaks}
-												on:load={scroll}
-											/>
-										</ErrorMessage>	
+										{/if}
+										</div>
 									{:else}
-										<!-- {message.content} -->
-										<Markdown
-											message={message.content}
-											{latex_delimiters}
-											{sanitize_html}
-											{render_markdown}
-											{line_breaks}
-											on:load={scroll}
-										/>
-									{/if}
-									{#if 'file' in message}
 										{#if message.file.mime_type?.includes("audio")}
 											<Audio
 												data-testid="chatbot-audio"
@@ -386,6 +396,11 @@
 		padding-right: calc(var(--spacing-xxl) + var(--spacing-md));
 		padding: calc(var(--spacing-xxl) + var(--spacing-sm));
 	}
+
+	.thought {
+		margin-top: var(--spacing-xxl);
+	}
+
 	.message :global(.prose) {
 		font-size: var(--chatbot-body-text-size);
 	}

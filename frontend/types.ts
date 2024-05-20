@@ -1,16 +1,24 @@
 import type { FileData } from "@gradio/client";
 
-type OpenAIMessageRole = "system" | "user" | "assistant" | "tool";
+type MessageRole = "system" | "user" | "assistant" | "tool";
 
-export interface OpenAIMessage {
-  role: OpenAIMessageRole;
-  content: string;
-  reasoning?: boolean;
-  tool_name?: string | null;
-  error?: boolean;
+
+export interface ThoughtMetadata {
+  error: boolean;
+  tool_name: string;
 }
 
-export interface FileMessage extends OpenAIMessage {
+export interface Message {
+  role: MessageRole;
+  thought_metadata: ThoughtMetadata;
+  thought: boolean;
+}
+
+export interface ChatMessage extends Message {
+  content: string;
+}
+
+export interface ChatFileMessage extends Message {
   file: FileData;
   alt_text?: string | null;
 }

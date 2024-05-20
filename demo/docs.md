@@ -1,14 +1,3 @@
----
-tags: [gradio-custom-component, Chatbot, chatbot, agents, streaming, tools]
-title: gradio_agentchatbot
-short_description: Chat with agents and see the tools they use
-colorFrom: blue
-colorTo: yellow
-sdk: gradio
-pinned: false
-app_file: space.py
----
-
 # gradio_agentchatbot
 
 ## 🤖 Chat UI for displaying the thoughts of LLM Agents 💭
@@ -18,7 +7,7 @@ The `gradio_agentchatbot` package introduces the `AgentChatbot` component which 
 
 For example usage with transformers agents, please see the [Transformers Usage](#transformers-usage) section.
 
-For general usage, see the [General Usage](#general-usage) section
+For general usage, see the [General Usage](#general-usage) section.
 
 For the API reference, see the [Initialization](#initialization) section.
 

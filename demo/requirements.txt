@@ -1,1 +1,7 @@
 gradio_agentchatbot
+"git+https://github.com/huggingface/transformers.git#egg=transformers[agents]"
+langchain
+sentence-transformers
+faiss-cpu
+serpapi
+google-search-results

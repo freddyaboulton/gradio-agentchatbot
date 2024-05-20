@@ -11,13 +11,13 @@
 	import type { LoadingStatus } from "@gradio/statustracker";
 	import { Chat } from "@gradio/icons";
 	import type { FileData } from "@gradio/client";
-	import type { OpenAIMessage, FileMessage } from "./types"
+	import type { ChatMessage, ChatFileMessage } from "./types"
 	import { StatusTracker } from "@gradio/statustracker";
 
 	export let elem_id = "";
 	export let elem_classes: string[] = [];
 	export let visible = true;
-	export let value: (OpenAIMessage | FileMessage)[] = [];
+	export let value: (ChatMessage | ChatFileMessage)[] = [];
 	export let scale: number | null = null;
 	export let min_width: number | undefined = undefined;
 	export let label: string;
@@ -48,7 +48,7 @@
 	}>;
 	export let avatar_images: [FileData | null, FileData | null] = [null, null];
 
-	let _value: (OpenAIMessage | FileMessage)[];
+	let _value: (ChatMessage | ChatFileMessage)[];
 
 	const redirect_src_url = (src: string): string =>
 		src.replace('src="/file', `src="${root}file`);
