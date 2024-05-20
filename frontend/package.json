@@ -1,0 +1,38 @@
+{
+  "name": "gradio_agentchatbot",
+  "version": "0.10.3",
+  "description": "Gradio UI packages",
+  "type": "module",
+  "author": "",
+  "license": "ISC",
+  "private": false,
+  "dependencies": {
+    "@gradio/atoms": "0.7.3",
+    "@gradio/audio": "0.11.3",
+    "@gradio/client": "0.19.2",
+    "@gradio/icons": "0.4.1",
+    "@gradio/image": "0.11.3",
+    "@gradio/markdown": "0.7.3",
+    "@gradio/statustracker": "0.5.3",
+    "@gradio/theme": "0.2.2",
+    "@gradio/upload": "0.10.3",
+    "@gradio/utils": "0.4.1",
+    "@gradio/video": "0.8.3",
+    "@types/dompurify": "^3.0.2",
+    "@types/katex": "^0.16.0",
+    "@types/prismjs": "^1.26.4",
+    "dequal": "^2.0.2",
+    "prismjs": "^1.29.0",
+    "vite": "^5.2.11",
+    "vite-plugin-prismjs": "^0.0.11"
+  },
+  "devDependencies": {
+    "@gradio/preview": "0.9.0"
+  },
+  "main_changeset": true,
+  "main": "./Index.svelte",
+  "exports": {
+    ".": "./Index.svelte",
+    "./package.json": "./package.json"
+  }
+}
