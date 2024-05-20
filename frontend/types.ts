@@ -1,6 +1,6 @@
 import type { FileData } from "@gradio/client";
 
-type MessageRole = "system" | "user" | "assistant" | "tool";
+export type MessageRole = "system" | "user";
 
 
 export interface ThoughtMetadata {
@@ -11,7 +11,6 @@ export interface ThoughtMetadata {
 export interface Message {
   role: MessageRole;
   thought_metadata: ThoughtMetadata;
-  thought: boolean;
 }
 
 export interface ChatMessage extends Message {

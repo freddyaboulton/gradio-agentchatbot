@@ -13,7 +13,6 @@ class ThoughtMetadata(GradioModel):
 
 class Message(GradioModel):
     role: Literal["user", "assistant"]
-    thought: bool = False
     thought_metadata: ThoughtMetadata = Field(default_factory=ThoughtMetadata)
 
 

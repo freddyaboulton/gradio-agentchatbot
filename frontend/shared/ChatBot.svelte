@@ -9,7 +9,7 @@
 	import { Image } from "@gradio/image/shared";
 	import { Video } from "@gradio/video/shared";
 	import type { SelectData, LikeData } from "@gradio/utils";
-	import type { ChatMessage, ChatFileMessage, Message } from "../types";
+	import type { ChatMessage, ChatFileMessage, Message, MessageRole } from "../types";
 	import { MarkdownCode as Markdown } from "@gradio/markdown";
 	import { FileData } from "@gradio/client";
 	import Copy from "./Copy.svelte";
@@ -135,18 +135,19 @@
 	}
 
 	function groupMessages(messages: (ChatMessage | ChatFileMessage)[]): (ChatMessage | ChatFileMessage)[][] {
-		const groupedMessages: (ChatFileMessage | ChatMessage)[][] = [];
-		let currentGroup: (ChatFileMessage | ChatMessage)[] = [];
+		const groupedMessages: (ChatMessage | ChatFileMessage)[][] = [];
+		let currentGroup: (ChatMessage | ChatFileMessage)[] = [];
+		let currentRole: MessageRole | null = null;
 
 		for (const message of messages) {
-			if (message.thought) {
-			currentGroup.push(message);
+			if (message.role === currentRole) {
+				currentGroup.push(message);
 			} else {
 			if (currentGroup.length > 0) {
 				groupedMessages.push(currentGroup);
-				currentGroup = [];
 			}
-			groupedMessages.push([message]);
+			currentGroup = [message];
+			currentRole = message.role;
 			}
 		}
 
@@ -155,7 +156,7 @@
 		}
 
 		return groupedMessages;
-}
+		}
 
 </script>
 
@@ -222,7 +223,7 @@
 								{#each messages as message, thought_index}
 
 									{#if !isFileMessage(message)}
-										<div class:thought={message.thought && thought_index > 0}>
+										<div class:thought={thought_index > 0}>
 										{#if message.thought_metadata.tool_name}
 											<ToolMessage
 												title={`Used tool ${message.thought_metadata.tool_name}`}

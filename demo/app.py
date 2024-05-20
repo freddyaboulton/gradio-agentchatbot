@@ -37,6 +37,7 @@ def interact_with_agent(prompt, messages):
 with gr.Blocks() as demo:
     with gr.Tabs():
         with gr.Tab("Demo"):
+            gr.Markdown("# Chat with an LLM Agent 🤖 and see its thoughts 💭")
             chatbot = AgentChatbot(
                 label="Agent",
                 avatar_images=[

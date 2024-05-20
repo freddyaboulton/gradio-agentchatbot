@@ -80,7 +80,7 @@ if __name__ == "__main__":
 
 The `AgentChatbot` is similar to the core `Gradio` `Chatbot` but the key difference is in the expected data format of the `value` property.
 
-Instead of a list of tuples, each of which can be either a string or tuple, the value is a list of message instances. Each message can be either a `ChatMessage` or a `ChatFileMessage`. These are pydantic classes that are compatible with the OpenAI [message format](https://platform.openai.com/docs/api-reference/chat/create#chat-create-messages). This is how the are defined:
+Instead of a list of tuples, each of which can be either a string or tuple, the value is a list of message instances. Each message can be either a `ChatMessage` or a `ChatFileMessage`. These are pydantic classes that are compatible with the OpenAI [message format](https://platform.openai.com/docs/api-reference/chat/create#chat-create-messages). This is how they are defined:
 
 ```python
 class ThoughtMetadata(GradioModel):
@@ -91,14 +91,12 @@ class ThoughtMetadata(GradioModel):
 class ChatMessage(GradioModel):
     role: Literal["user", "assistant"]
     content: str
-    thought: bool = False
     thought_metadata: ThoughtMetadata = Field(default_factory=ThoughtMetadata)
 
 
 class ChatFileMessage(GradioModel):
     role: Literal["user", "assistant"]
     file: FileData
-    thought: bool = False
     thought_metadata: ThoughtMetadata = Field(default_factory=ThoughtMetadata)
     alt_text: Optional[str] = None
 ```
@@ -112,10 +110,18 @@ def chat_echo(prompt: str, messages: List[ChatMessage | ChatFileMessage]) -> Lis
     return messages
 ```
 
-### Why a different data format?
+### Why a different data format than Gradio core?
 
 The OpenAI data format is the standard format for representing LLM conversations and most API providers have adopted it.
 By using a compliant data format, it should be easier to use `AgentChatbot` with multiple API providers and libraries.
+
+
+### What is `thought_metadata` field for?
+
+You can use this to add additional information data about the current thought, like the names of the tool used.
+If the `thought_metadata.tool_name` field is not `None`, the message `content` will be displayed in a collapsible tool modal. See below:
+
+![Tool Modal](https://gradio-builds.s3.amazonaws.com/demo-files/tool_modal.gif)
 
 
 ### Why are pydantic data classes required?
