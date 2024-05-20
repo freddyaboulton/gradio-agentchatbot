@@ -1,5 +1,5 @@
 gradio_agentchatbot
-"git+https://github.com/huggingface/transformers.git#egg=transformers[agents]"
+git+https://github.com/huggingface/transformers.git#egg=transformers[agents]
 langchain
 sentence-transformers
 faiss-cpu

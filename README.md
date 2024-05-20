@@ -6,7 +6,7 @@ colorFrom: blue
 colorTo: yellow
 sdk: gradio
 pinned: false
-app_file: space.py
+app_file: app.py
 ---
 
 # gradio_agentchatbot
