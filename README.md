@@ -1,7 +1,7 @@
 ---
 tags: [gradio-custom-component, Chatbot, chatbot, agents, streaming, tools]
 title: gradio_agentchatbot
-short_description: Chat with agents and see the tools they use
+short_description: Chat with agents 🤖 and see their thoughts 💭
 colorFrom: blue
 colorTo: yellow
 sdk: gradio
