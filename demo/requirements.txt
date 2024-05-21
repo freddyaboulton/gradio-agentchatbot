@@ -7,4 +7,4 @@ faiss-cpu
 serpapi
 google-search-results
 langchain-openai
-langchain-hub
+langchainhub
