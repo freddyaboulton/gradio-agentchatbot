@@ -6,3 +6,5 @@ sentence-transformers
 faiss-cpu
 serpapi
 google-search-results
+langchain-openai
+langchain-hub

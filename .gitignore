@@ -11,3 +11,4 @@ __tmp/*
 node_modules
 backend/**/templates/
 *.env
+scripts/
