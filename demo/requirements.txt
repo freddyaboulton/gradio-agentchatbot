@@ -1,5 +1,5 @@
 gradio_agentchatbot==0.0.2
-git+https://github.com/huggingface/transformers.git#egg=transformers[agents]
+git+https://github.com/freddyaboulton/transformers.git@agent_fixes_freddyb#egg=transformers[agents]
 langchain
 langchain-community
 sentence-transformers
