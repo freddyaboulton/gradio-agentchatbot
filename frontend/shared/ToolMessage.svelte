@@ -37,6 +37,7 @@
         display: flex;
         align-items: center;
         padding: 8px;
+        font-weight: bold;
     }
 
     .wrench-icon {
