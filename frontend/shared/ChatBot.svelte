@@ -226,7 +226,7 @@
 										<div class:thought={thought_index > 0}>
 										{#if message.thought_metadata.tool_name}
 											<ToolMessage
-												title={`Used tool ${message.thought_metadata.tool_name}`}
+												title={`Tool call: ${message.thought_metadata.tool_name}`}
 											>
 												<!-- {message.content} -->
 												<Markdown

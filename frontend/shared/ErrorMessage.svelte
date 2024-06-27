@@ -27,7 +27,7 @@
         border-radius: 4px;
         cursor: pointer;
         max-width: max-content;
-        background: var(--color-accent-soft)
+        background: var(--color-accent-soft);
     }
 
     .title {
@@ -35,6 +35,7 @@
         align-items: center;
         padding: 8px;
         color: var(--color-red-50);
+        font-weight: bold;
     }
 
     .icon {

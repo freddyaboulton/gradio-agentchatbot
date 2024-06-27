@@ -34,7 +34,6 @@ def interact_with_agent(prompt, messages):
     for msg in stream_from_transformers_agent(agent, prompt):
         messages.append(msg)
         yield messages
-    yield messages
 
 
 async def interact_with_langchain_agent(prompt, messages):

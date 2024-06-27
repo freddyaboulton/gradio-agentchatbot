@@ -43,14 +43,12 @@ llm_engine = HfEngine("meta-llama/Meta-Llama-3-70B-Instruct")
 # Initialize the agent with both tools
 agent = ReactCodeAgent(tools=[image_generation_tool, search_tool], llm_engine=llm_engine)
 
-
 def interact_with_agent(prompt, messages):
     messages.append(ChatMessage(role="user", content=prompt))
     yield messages
     for msg in stream_from_transformers_agent(agent, prompt):
         messages.append(msg)
         yield messages
-    yield messages
 
 
 with gr.Blocks() as demo:
