@@ -49,7 +49,7 @@ def pull_message(step_log: dict):
         )
     if step_log.get("observation"):
         yield ChatMessage(
-            role="assistant", content=step_log["observation"], thought=True
+            role="assistant", content=f"```\n{step_log['observation']}\n```", thought=True
         )
     if step_log.get("error"):
         yield ChatMessage(
@@ -76,7 +76,7 @@ def stream_from_transformers_agent(
     Output.output = step_log
     if isinstance(Output.output, agent_types.AgentText):
         yield ChatMessage(
-            role="assistant", content="> " + Output.output.to_string(), thought=True
+            role="assistant", content=f"**Final answer:**\n```\n{Output.output.to_string()}\n```", thought=True
         )
     elif isinstance(Output.output, agent_types.AgentImage):
         yield ChatFileMessage(
