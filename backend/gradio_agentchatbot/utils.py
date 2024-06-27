@@ -76,7 +76,7 @@ def stream_from_transformers_agent(
     Output.output = step_log
     if isinstance(Output.output, agent_types.AgentText):
         yield ChatMessage(
-            role="assistant", content=">>> " + Output.output.to_string(), thought=True
+            role="assistant", content="> " + Output.output.to_string(), thought=True
         )
     elif isinstance(Output.output, agent_types.AgentImage):
         yield ChatFileMessage(
